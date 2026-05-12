@@ -14,7 +14,7 @@ typedef struct
     char code[MAX];
 } HuffCode;
 
-extern int freq[128];
+extern int freq[256];
 
 // 哈夫曼树
 void SelectMin(HuffNode ht[], int len, int *s1, int *s2);

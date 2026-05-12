@@ -1,6 +1,6 @@
 #include "huffman.h"
 
-int freq[128] = {0}; 
+int freq[256] = {0}; 
 
 int main()
 {

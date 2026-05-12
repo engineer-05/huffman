@@ -19,7 +19,7 @@ int ReadFileAndCount(char *filename)
 
     // 统计有效字符个数
     int n = 0;
-    for (int i = 0; i < 128; i++)
+    for (int i = 0; i < 258; i++)
         if (freq[i] > 0)
             n++;
     return n;
@@ -32,7 +32,7 @@ void CompressFile(char *srcFile, char *zipFile, HuffCode hc[], int n)
     FILE *fpOut = fopen(zipFile, "wb");
 
     // 先把频率表写入压缩文件头部(解压必备)
-    fwrite(freq, sizeof(int), 128, fpOut);
+    fwrite(freq, sizeof(int), 256, fpOut);
 
     char ch;
     char bitBuf[10000] = "";
@@ -41,7 +41,7 @@ void CompressFile(char *srcFile, char *zipFile, HuffCode hc[], int n)
     while ((ch = fgetc(fpIn)) != EOF)
     {
         int idx = 0;
-        for (int i = 0; i < 128; i++)
+        for (int i = 0; i < 256; i++)
         {
             if (freq[i] > 0)
             {
@@ -95,7 +95,7 @@ void UnZipFile(char *zipFile, char *outFile, HuffNode ht[], int n)
 
     int len;
     // 先读取头部频率表
-    fread(freq, sizeof(int), 128, fpIn);
+    fread(freq, sizeof(int), 256, fpIn);
     // 在读取真实编码个数
     fread(&len, sizeof(int), 1, fpIn);
 
@@ -128,7 +128,7 @@ void UnZipFile(char *zipFile, char *outFile, HuffNode ht[], int n)
             if (ht[p].lch == 0 && ht[p].rch == 0)
             {
                 int idx = 0;
-                for (int j = 0; j < 128; j++)
+                for (int j = 0; j < 256; j++)
                 {
                     if (freq[j] > 0)
                     {
