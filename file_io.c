@@ -55,8 +55,11 @@ void CompressFile(char *srcFile, char *zipFile, HuffCode hc[], int n)
         }
     }
 
-    // 按8位一组转二进制写入文件
+    // 先写入真实比特长度(解压必备)
     int len = strlen(bitBuf);
+    fwrite(&len, sizeof(int), 1, fpOut);
+
+    // 按8位一组转二进制写入文件
     unsigned char byte = 0;
     int cnt = 0;
     for (int i = 0; i < len; i++)
@@ -90,18 +93,31 @@ void UnZipFile(char *zipFile, char *outFile, HuffNode ht[], int n)
     FILE *fpIn = fopen(zipFile, "rb");
     FILE *fpOut = fopen(outFile, "w");
 
+    int len;
     // 先读取头部频率表
     fread(freq, sizeof(int), 128, fpIn);
+    // 在读取真实编码个数
+    fread(&len, sizeof(int), 1, fpIn);
 
     int root = 2 * n - 1;
     int p = root;
     unsigned char ch;
 
+    int count = 0;
     while (fread(&ch, 1, 1, fpIn) > 0)
     {
         // 逐位解析01
         for (int i = 7; i >= 0; i--)
         {
+            count++;
+
+            if (count >= len + 1)
+            {
+                fclose(fpIn);
+                fclose(fpOut);
+                printf("✅ 解压完成，已生成还原文本文件\n");
+                return;
+            }
             int bit = (ch >> i) & 1;
             if (bit == 0)
                 p = ht[p].lch;
