@@ -93,10 +93,11 @@ void UnZipFile(char *zipFile, char *outFile, HuffNode ht[], int n)
     FILE *fpIn = fopen(zipFile, "rb");
     FILE *fpOut = fopen(outFile, "w");
 
-    int len;
     // 先读取头部频率表
     fread(freq, sizeof(int), 256, fpIn);
+    
     // 在读取真实编码个数
+    int len;
     fread(&len, sizeof(int), 1, fpIn);
 
     int root = 2 * n - 1;
