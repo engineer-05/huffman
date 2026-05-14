@@ -31,13 +31,42 @@ void CompressFile(char *srcFile, char *zipFile, HuffCode hc[], int n)
     FILE *fpIn = fopen(srcFile, "r");
     FILE *fpOut = fopen(zipFile, "wb");
 
-    // 先把频率表写入压缩文件头部(解压必备)
+    // 先写频率表
     fwrite(freq, sizeof(int), 256, fpOut);
 
     char ch;
-    char bitBuf[10000] = "";
+    // 1. 先统计总编码长度，计算需要多大内存
+    int totalBits = 0;
+    while ((ch = fgetc(fpIn)) != EOF)
+    {
+        int idx = 0;
+        for (int i = 0; i < 256; i++)
+        {
+            if (freq[i] > 0)
+            {
+                idx++;
+                if (i == (unsigned char)ch)
+                {
+                    totalBits += strlen(hc[idx].code);
+                    break;
+                }
+            }
+        }
+    }
+    rewind(fpIn); // 回到文件开头，重新读取
 
-    // 拼接所有哈夫曼编码
+    // 2. 动态分配足够大的bitBuf
+    char *bitBuf = (char *)malloc(totalBits + 1); // +1存结束符
+    if (bitBuf == NULL)
+    {
+        printf("内存分配失败！\n");
+        fclose(fpIn);
+        fclose(fpOut);
+        return;
+    }
+    bitBuf[0] = '\0'; // 初始化空字符串
+
+    // 3. 拼接编码
     while ((ch = fgetc(fpIn)) != EOF)
     {
         int idx = 0;
@@ -55,11 +84,11 @@ void CompressFile(char *srcFile, char *zipFile, HuffCode hc[], int n)
         }
     }
 
-    // 先写入真实比特长度(解压必备)
+    // 4. 写入有效长度
     int len = strlen(bitBuf);
     fwrite(&len, sizeof(int), 1, fpOut);
 
-    // 按8位一组转二进制写入文件
+    // 5. 转二进制写入文件
     unsigned char byte = 0;
     int cnt = 0;
     for (int i = 0; i < len; i++)
@@ -75,12 +104,14 @@ void CompressFile(char *srcFile, char *zipFile, HuffCode hc[], int n)
             cnt = 0;
         }
     }
-    // 处理剩余不足8位
     if (cnt > 0)
     {
         byte <<= (8 - cnt);
         fputc(byte, fpOut);
     }
+
+    // 6. 释放动态内存
+    free(bitBuf);
 
     fclose(fpIn);
     fclose(fpOut);

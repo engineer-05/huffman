@@ -43,8 +43,7 @@ int main()
             printf("\n按回车继续...\n");
 
             // 关键：清空输入缓冲区所有残留字符
-            while (getchar() != '\n')
-                ;
+            while (getchar() != '\n');
             continue;
         }
 
@@ -102,16 +101,10 @@ int main()
             }
             fclose(fpCheck);
 
-            // ======================
-            // 【重要修正】
-            // 解压读取顺序：先读 频率表 → 再读 len
-            // 完全匹配你的压缩逻辑
-            // ======================
             FILE *fp = fopen(inputPath, "rb");
             int len;
             int tempFreq[256] = {0};
 
-            // 【这里顺序改对了！】
             fread(tempFreq, sizeof(int), 256, fp); // 先读频率表
             fread(&len, sizeof(int), 1, fp);       // 再读有效位数 len
             fclose(fp);
@@ -159,6 +152,6 @@ int main()
             break;
         }
     }
-
+    
     return 0;
 }
